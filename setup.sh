@@ -44,9 +44,29 @@ while read -r extension; do
 done < extensions.txt
 
 # set gnome settings
-echo "settings gnome settings"
+echo "setting gnome settings"
 gsettings set org.gnome.shell favorite-apps "['firefox.desktop', 'org.gnome.Nautilus.desktop', 'org.gnome.Software.desktop', 'org.gnome.Terminal.desktop', 'gnome-system-monitor.desktop']"
 
+# install software that is not in the default repos
+echo "Installing software outside of default repos"
+read -p "This script will install Tailscale. Do you want to continue? (y/n): " choice
+if [[ $choice =~ ^[Yy]$ ]]; then
+    # Download and install Tailscale
+    sudo dnf install -y dnf-plugins-core
+    sudo dnf config-manager --add-repo https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+    sudo dnf install -y tailscale
+
+    # Authenticate with your Tailscale account
+    # sudo tailscale up
+
+    # Optional: Enable Tailscale to start on boot
+    sudo systemctl enable tailscaled
+
+    echo "Tailscale installed successfully!"
+else
+    echo "Installation aborted."
+    failed_installs_packages+=("Tailscale")
+fi
 
 # Print the list of failed installations
 if [ ${#failed_installs_packages[@]} -eq 0 ]; then
